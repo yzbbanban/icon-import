@@ -1,0 +1,10 @@
+{
+  "name": "icon-import",
+  "id": 207386373668195,
+  "api": "1.0.0",
+  "main": "dist/main.js",
+  "ui": "dist/index.html",
+  "editor_type": [
+    "canvas"
+  ]
+}
