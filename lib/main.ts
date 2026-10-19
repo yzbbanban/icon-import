@@ -7,12 +7,11 @@ mg.ui.onmessage = async (msg) => {
     return;
   }
 
-  // 从画布提取选中元素的 SVG
   if (msg.type === 'extract-canvas-svg') {
     const selection = mg.document.currentPage.selection;
 
     if (selection.length === 0) {
-      mg.notify('⚠️ 请先在画布中选中至少一个节点 (Frame/编组/矢量网格)');
+      mg.notify('⚠️ 请先在画布中选中至少一个节点');
       return;
     }
 
@@ -21,18 +20,30 @@ mg.ui.onmessage = async (msg) => {
       mg.notify(`正在提取 ${selection.length} 个图标，请稍候...`);
 
       for (const node of selection) {
-        // 调用 MasterGo API 直接导出该节点的 SVG 字节流
-        const bytes = await node.exportAsync({ format: 'SVG' });
-        // 将 Uint8Array 转换为普通数组，确保能安全穿透通信层发给前端 UI
+        // MasterGo 导出 SVG 实际上直接返回的就是 string！
+        const exported = await node.exportAsync({ format: 'SVG' }) as any;
+
+        let svgText = '';
+        if (typeof exported === 'string') {
+          svgText = exported;
+        } else if (exported instanceof Uint8Array) {
+          // 仅做极端情况兼容
+          svgText = new TextDecoder('utf-8').decode(exported);
+        }
+
+        console.log(`[插件后台] 成功提取 "${node.name}", SVG 长度:`, svgText.length);
+
         results.push({
-          name: node.name,
-          bytes: Array.from(bytes)
+          name: node.name || 'icon',
+          svgText: svgText,
+          width: node.width || 24,
+          height: node.height || 24
         });
       }
 
-      // 把提取到的所有 SVG 数据发给 Vue 前端
       mg.ui.postMessage({ type: 'selection-svg-result', items: results });
     } catch (e: any) {
+      console.error('提取失败:', e);
       mg.notify(`提取失败: ${e.message}`);
     }
     return;
