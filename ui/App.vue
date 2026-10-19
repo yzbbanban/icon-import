@@ -70,7 +70,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue';
 
-const serverBaseUrl = ref('https://halo-sort-chapel-charitable.trycloudflare.com');
+const serverBaseUrl = ref('https://docile-photo-natural.ngrok-free.dev');
 const currentTab = ref('pull');
 const projects = ref<any[]>(Array.isArray([]) ? [] : []);
 const allIcons = ref<any[]>([]);
