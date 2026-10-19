@@ -71,6 +71,17 @@
 import {ref, computed, onMounted} from 'vue';
 
 const serverBaseUrl = ref('https://docile-photo-natural.ngrok-free.dev');
+async function apiFetch(endpoint: string, options: RequestInit = {}) {
+  const headers = {
+    'ngrok-skip-browser-warning': 'true',
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+
+  const url = `${serverBaseUrl.value.replace(/\/$/, '')}${endpoint}`;
+  return await fetch(url, { ...options, headers });
+}
+
 const currentTab = ref('pull');
 const projects = ref<any[]>(Array.isArray([]) ? [] : []);
 const allIcons = ref<any[]>([]);
@@ -99,7 +110,7 @@ async function uploadExtractedCanvasItems(items: any[]) {
       }
 
       // 调用预览接口清洗格式与去色
-      const previewRes = await fetch(`${serverBaseUrl.value}/api/icons/preview-svg`, {
+      const previewRes = await apiFetch(`/api/icons/preview-svg`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,8 +120,9 @@ async function uploadExtractedCanvasItems(items: any[]) {
       });
 
       if (!previewRes.ok) {
-        const errInfo = await previewRes.text();
-        throw new Error(`预览解析失败: ${errInfo}`);
+        const errText = await previewRes.text();
+        console.error('[后端报错详情]', errText);
+        throw new Error(`预览解析失败 (${previewRes.status}): ${errText}`);
       }
 
       const previewData = await previewRes.json();
@@ -137,7 +149,7 @@ async function uploadExtractedCanvasItems(items: any[]) {
         : selectedProjectId.value;
 
     // 2. 调用 batch 接口正式入库
-    const batchRes = await fetch(`${serverBaseUrl.value}/api/icons/batch`, {
+    const batchRes = await apiFetch(`/api/icons/batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -177,15 +189,19 @@ const filteredIcons = computed(() => {
 // 1. 同时获取项目列表与全部图标列表
 async function fetchData() {
   try {
+    const [resProj, resIcons] = await Promise.all([
+      apiFetch('/api/projects'),
+      apiFetch('/api/icons')
+    ]);
     // 获取项目
-    const resProj = await fetch(`${serverBaseUrl.value}/api/projects`);
+    // const resProj = await fetch(`${serverBaseUrl.value}/api/projects`);
     const dataProj = await resProj.json();
     if (dataProj && Array.isArray(dataProj.projects)) {
       projects.value = dataProj.projects;
     }
 
     // 获取图标库
-    const resIcons = await fetch(`${serverBaseUrl.value}/api/icons`);
+    // const resIcons = await fetch(`${serverBaseUrl.value}/api/icons`);
     const dataIcons = await resIcons.json();
     if (dataIcons && Array.isArray(dataIcons.icons)) {
       allIcons.value = dataIcons.icons;
