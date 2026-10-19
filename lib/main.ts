@@ -55,14 +55,14 @@ mg.ui.onmessage = async (msg) => {
       const svgString = msg.svgContent;
       const iconName = msg.name || 'icon';
 
-      const CELL_SIZE = 88;
+      const CELL_SIZE = 68;
       const ICON_SIZE = 64;
 
       const cardFrame = mg.createFrame();
       cardFrame.name = iconName;
       cardFrame.resize(CELL_SIZE, CELL_SIZE);
-      cardFrame.cornerRadius = 12;
-      cardFrame.fills = [{ type: 'SOLID', color: { r: 0.92, g: 0.93, b: 0.94, a: 1 } }];
+      cardFrame.cornerRadius = 0;
+      cardFrame.fills = [];
 
       // 放置在当前视口中心
       const center = mg.viewport ? mg.viewport.center : { x: 0, y: 0 };

@@ -258,9 +258,18 @@ async function fetchData() {
 
 // 点击图标直接在 MasterGo 中生成
 const insertIconToCanvas = (icon: any) => {
+  let svgContent = icon.svgContent || '';
+
+  // 强行把 SVG 根节点的宽高指定为 64x64（或者你期望的尺寸，如 24x24 / 48x48）
+  if (svgContent.includes('width=')) {
+    svgContent = svgContent.replace(/width="[^"]*"/g, 'width="64"');
+    svgContent = svgContent.replace(/height="[^"]*"/g, 'height="64"');
+  } else {
+    svgContent = svgContent.replace('<svg', '<svg width="64" height="64"');
+  }
   parent.postMessage({
     type: 'insert-single-icon',
-    svgContent: icon.svgContent,
+    svgContent: svgContent,
     name: icon.name || icon.code
   }, '*');
 };
